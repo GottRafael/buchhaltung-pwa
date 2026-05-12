@@ -1,5 +1,5 @@
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js'
+const SUPABASE_URL='https://dnkflankolstrjqhpzrs.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_Vqy8k9JkpAL6o5EX2pV6ww_6uFb3Fcm';
 
 const DEFAULT_CATEGORIES=['3. Säule','Ausgang','Auto','Bücher','Einnahmen','Essen','Ferien','Festivals','Gesundheit','Kleider','Lohn','Motorrad','ÖV','Pflege','Ramon','Salt','Steuern','Twint','Undefinierbar','Darlehen an 3te'];
 const DEFAULT_ACCOUNTS=['Kasse','BEKB','BBO','Kreditkarte'];
