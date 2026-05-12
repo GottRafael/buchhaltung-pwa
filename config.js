@@ -1,3 +1,3 @@
 // Diese Datei muss vor dem Online-Stellen angepasst werden.
-export const SUPABASE_URL = 'https://DEIN-PROJEKT.supabase.co';
-export const SUPABASE_ANON_KEY = 'DEIN-PUBLISHABLE-ODER-ANON-KEY';
+const SUPABASE_URL = 'https://dnkflankolstrjqhpzrs.supabase.co'
+const SUPABASE_KEY = 'sb_publishable_Vqy8k9JkpAL6o5EX2pV6ww_6uFb3Fcm'
