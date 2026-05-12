@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Buchhaltung PWA</title>
+  <meta name="theme-color" content="#111827" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>Buchhaltung</h1>
+      <p>Mobile Erfassung & Auswertung</p>
+    </div>
+    <div class="top-actions"><span id="userStatus">Nicht angemeldet</span><button id="logoutBtn" class="ghost hidden">Logout</button><button id="installBtn" class="ghost hidden">Installieren</button></div>
+  </header>
+
+  <nav class="tabs" aria-label="Navigation">
+    <button class="tab active" data-view="capture">Buchen</button>
+    <button class="tab" data-view="entries">Liste</button>
+    <button class="tab" data-view="stats">Auswertung</button>
+    <button class="tab" data-view="settings">Listen</button>
+  </nav>
+
+  <section id="authBox" class="auth-wrap">
+    <div class="card auth-card">
+      <h2>Login</h2>
+      <p class="muted">Melde dich mit E-Mail an. Danach werden Buchungen in Supabase gespeichert und sind auf mehreren Geräten verfügbar.</p>
+      <form id="loginForm" class="form-grid">
+        <label class="wide">E-Mail
+          <input id="loginEmail" type="email" autocomplete="email" required placeholder="name@example.com" />
+        </label>
+        <label class="wide">Passwort
+          <input id="loginPassword" type="password" autocomplete="current-password" required minlength="6" />
+        </label>
+        <div class="actions wide">
+          <button type="submit" class="primary">Einloggen</button>
+          <button type="button" id="signupBtn" class="ghost">Konto erstellen</button>
+        </div>
+      </form>
+      <p id="authMessage" class="muted"></p>
+      <div id="setupWarning" class="setup-warning hidden">Supabase ist noch nicht konfiguriert. Öffne <code>config.js</code> und trage Project URL und Publishable/Anon Key ein.</div>
+    </div>
+  </section>
+
+  <main id="appShell" class="hidden">
+    <section id="capture" class="view active">
+      <form id="bookingForm" class="card form-grid">
+        <input type="hidden" id="editId" />
+        <label>Datum
+          <input id="date" type="date" required />
+        </label>
+        <label>Typ
+          <select id="type" required>
+            <option value="Ausgabe">Ausgabe</option>
+            <option value="Einnahme">Einnahme</option>
+            <option value="Transfer">Transfer</option>
+          </select>
+        </label>
+        <label>Betrag CHF
+          <input id="amount" type="number" step="0.05" min="0" inputmode="decimal" placeholder="0.00" required />
+        </label>
+        <label>Kategorie
+          <select id="category" required></select>
+        </label>
+        <label>Konto
+          <select id="account" required></select>
+        </label>
+        <label>Gegenkonto / Zielkonto
+          <select id="targetAccount"></select>
+        </label>
+        <label class="wide">Beschreibung
+          <input id="description" type="text" placeholder="z.B. Migros, Lohn, Rechnung..." />
+        </label>
+        <label class="wide">Belegfoto optional
+          <input id="receipt" type="file" accept="image/*" capture="environment" />
+        </label>
+        <div class="actions wide">
+          <button type="submit" class="primary">Buchung speichern</button>
+          <button type="button" id="resetForm" class="ghost">Zurücksetzen</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="entries" class="view">
+      <div class="card filters">
+        <label>Monat
+          <input id="filterMonth" type="month" />
+        </label>
+        <label>Kategorie
+          <select id="filterCategory"></select>
+        </label>
+        <label>Konto
+          <select id="filterAccount"></select>
+        </label>
+        <label>Suche
+          <input id="filterText" type="search" placeholder="Beschreibung..." />
+        </label>
+      </div>
+      <div class="card list-head">
+        <strong id="entryCount">0 Buchungen</strong>
+        <div>
+          <button id="exportCsv" class="ghost">CSV</button>
+          <button id="exportJson" class="ghost">Backup</button>
+          <label class="import-btn ghost">Import
+            <input id="importJson" type="file" accept="application/json" hidden />
+          </label>
+        </div>
+      </div>
+      <div id="entryList" class="entry-list"></div>
+    </section>
+
+    <section id="stats" class="view">
+      <div class="card filters">
+        <label>Jahr
+          <input id="statsYear" type="number" min="2000" max="2100" />
+        </label>
+        <label>Monat
+          <select id="statsMonth"></select>
+        </label>
+      </div>
+      <div class="kpis">
+        <div class="kpi card"><span>Einnahmen</span><strong id="kpiIncome">CHF 0.00</strong></div>
+        <div class="kpi card"><span>Ausgaben</span><strong id="kpiExpense">CHF 0.00</strong></div>
+        <div class="kpi card"><span>Ergebnis</span><strong id="kpiResult">CHF 0.00</strong></div>
+      </div>
+      <div class="card">
+        <h2>Nach Kategorie</h2>
+        <div id="categoryStats"></div>
+      </div>
+      <div class="card">
+        <h2>Kontostand nach Buchungen</h2>
+        <div id="accountStats"></div>
+      </div>
+    </section>
+
+    <section id="settings" class="view">
+      <div class="card">
+        <h2>Kategorien</h2>
+        <div class="inline-editor">
+          <input id="newCategory" placeholder="Neue Kategorie" />
+          <button id="addCategory" class="primary">Hinzufügen</button>
+        </div>
+        <div id="categoryChips" class="chips"></div>
+      </div>
+      <div class="card">
+        <h2>Konten</h2>
+        <div class="inline-editor">
+          <input id="newAccount" placeholder="Neues Konto" />
+          <button id="addAccount" class="primary">Hinzufügen</button>
+        </div>
+        <div id="accountChips" class="chips"></div>
+      </div>
+      <div class="card warning">
+        <h2>Daten</h2>
+        <p>Die Daten werden in Supabase pro Login gespeichert. Backup/Import bleibt zusätzlich verfügbar.</p>
+        <button id="clearAll" class="danger">Alle lokalen Daten löschen</button>
+      </div>
+    </section>
+  </main>
+
+  <template id="entryTemplate">
+    <article class="entry card">
+      <div class="entry-main">
+        <strong class="entry-title"></strong>
+        <span class="entry-meta"></span>
+        <span class="entry-desc"></span>
+      </div>
+      <div class="entry-side">
+        <strong class="entry-amount"></strong>
+        <div class="entry-actions">
+          <button class="edit ghost">Bearbeiten</button>
+          <button class="delete danger ghost">Löschen</button>
+        </div>
+      </div>
+    </article>
+  </template>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
